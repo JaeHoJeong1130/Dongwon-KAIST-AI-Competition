@@ -14,7 +14,7 @@ os.makedirs(PATH, exist_ok=True) # 🔹 경로 수정: 폴더가 없으면 자�
 # [중요] 사용자의 API 키를 입력하세요.
 try:
     # -------------------------------------------------------------------------
-    genai.configure(api_key="AIzaSyApXG30wdefn3AwnlnyZVVK0zdfMmzVHPA")
+    genai.configure(api_key="a")
     # -------------------------------------------------------------------------
     print("✅ Gemini API 키가 설정되었습니다.")
 except Exception as e:

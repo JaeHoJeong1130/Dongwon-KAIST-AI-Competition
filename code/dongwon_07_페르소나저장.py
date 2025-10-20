@@ -53,7 +53,7 @@ if USE_API_TO_GENERATE_PERSONAS:
         # -------------------------------------------------------------------------
         # genai.configure(api_key="실제 API 키를 입력하세요")
         # -------------------------------------------------------------------------
-        genai.configure(api_key="AIzaSyCHtfPOopo_lZtDI3-5ktSB5p_S_epexLc") # <--- ⚠️ 여기에 실제 API 키를 입력하세요.
+        genai.configure(api_key="a") # <--- ⚠️ 여기에 실제 API 키를 입력하세요.
         model = genai.GenerativeModel('models/gemini-2.0-flash') # 모델명은 최신 버전으로 유지하는 것이 좋습니다.
         logger.info("✅ Gemini API 키가 설정되었습니다. [API 모드]")
     except Exception as e:

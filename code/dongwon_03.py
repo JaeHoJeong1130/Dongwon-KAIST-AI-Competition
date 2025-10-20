@@ -41,7 +41,7 @@ logger.info("✅ 로깅 설정이 완료되었습니다. 콘솔과 파일에 로
 # [중요] 사용자의 API 키를 입력하세요.
 try:
     # -------------------------------------------------------------------------
-    genai.configure(api_key="AIzaSyApXG30wdefn3AwnlnyZVVK0zdfMmzVHPA") # <--- 여기에 실제 API 키를 입력하세요.
+    genai.configure(api_key="a") # <--- 여기에 실제 API 키를 입력하세요.
     # -------------------------------------------------------------------------
     model = genai.GenerativeModel('models/gemini-2.0-flash')
     logger.info("✅ Gemini API 키가 설정되었습니다.")

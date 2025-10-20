@@ -15,7 +15,7 @@ os.makedirs(PATH, exist_ok=True)
 # [중요] 사용자의 API 키를 입력하세요.
 try:
     # -------------------------------------------------------------------------
-    genai.configure(api_key="AIzaSyApXG30wdefn3AwnlnyZVVK0zdfMmzVHPA") # <--- 여기에 실제 API 키를 입력하세요.
+    genai.configure(api_key="a") # <--- 여기에 실제 API 키를 입력하세요.
     # -------------------------------------------------------------------------
     print("✅ Gemini API 키가 설정되었습니다.")
 except Exception as e:
