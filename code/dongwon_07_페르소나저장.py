@@ -1,6 +1,3 @@
-# ==============================================================================
-# 📝 사전 준비: 라이브러리 임포트 및 API 키 설정
-# ==============================================================================
 import google.generativeai as genai
 import pandas as pd
 import json
@@ -10,14 +7,11 @@ import re
 import logging
 import numpy as np
 
-# ✨ 경로 설정
 PATH = './09_dongwon/'
 os.makedirs(PATH, exist_ok=True)
-# ✨ 추가: 페르소나 JSON 파일을 저장할 캐시 폴더 생성
 PERSONA_CACHE_PATH = os.path.join(PATH, 'personas')
 os.makedirs(PERSONA_CACHE_PATH, exist_ok=True)
 
-# 🪵 ======================= 로거 설정 ======================= 🪵
 timestamp = time.strftime("%Y%m%d_%H%M%S")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -33,36 +27,19 @@ if not logger.handlers:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-logger.info("✅ 로깅 설정이 완료되었습니다.")
-# 🪵 =============================================================== 🪵
+logger.info("로깅 설정 완료")
 
-# ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-# ✨ 0. 실행 모드 설정 (가장 중요한 부분!)
-# ------------------------------------------------------------------------------
-# True : API를 호출하여 페르소나를 '새로 생성'하고 JSON 파일로 저장합니다. (시간/비용 발생)
-# False: 기존에 저장된 JSON 파일을 '불러와서' 사용합니다. (빠른 테스트용, API 호출 X)
-# ------------------------------------------------------------------------------
-# USE_API_TO_GENERATE_PERSONAS = True
 USE_API_TO_GENERATE_PERSONAS = False
-# ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐
-
-# [중요] 사용자의 API 키를 입력하세요.
-# (API 모드가 False일 경우, 이 부분은 실행되지 않습니다.)
 if USE_API_TO_GENERATE_PERSONAS:
     try:
-        # -------------------------------------------------------------------------
-        # genai.configure(api_key="실제 API 키를 입력하세요")
-        # -------------------------------------------------------------------------
-        genai.configure(api_key="a") # <--- ⚠️ 여기에 실제 API 키를 입력하세요.
-        model = genai.GenerativeModel('models/gemini-2.0-flash') # 모델명은 최신 버전으로 유지하는 것이 좋습니다.
-        logger.info("✅ Gemini API 키가 설정되었습니다. [API 모드]")
+        genai.configure(api_key="a")
+        model = genai.GenerativeModel('models/gemini-2.0-flash')
+        logger.info("Gemini API 키 설정 완료")
     except Exception as e:
-        logger.error(f"❗️ API 키 설정 중 오류가 발생했습니다: {e}")
-        # API 키가 없으면 API 모드를 강제로 비활성화
+        logger.error(f"API 키 설정 오류: {e}")
         USE_API_TO_GENERATE_PERSONAS = False
-        logger.warning("❗️ API 사용이 불가능하여 [캐시 사용 모드]로 강제 전환합니다.")
+        logger.warning("캐시 사용 모드로 전환")
 
-# 헬퍼 함수
 def extract_json_from_response(text):
     match = re.search(r'```json\s*(\[.*\])\s*```', text, re.DOTALL)
     if match:
@@ -72,14 +49,9 @@ def extract_json_from_response(text):
         return match.group(0)
     return None
 
-# ✨ 추가: 파일명으로 사용하기 안전한 문자열로 변환하는 함수
 def sanitize_filename(name):
-    """제품명에서 파일명으로 사용할 수 없는 문자를 '_'로 변경합니다."""
+    """파일명으로 사용할 수 없는 문자를 '_'로 변경"""
     return re.sub(r'[\\/*?:"<>|]', '_', name)
-
-# ==============================================================================
-# ✨ 1. 페르소나 생성 프롬프트 함수 (기존과 동일)
-# ==============================================================================
 def create_product_specific_prompt(product_name, num_personas=30):
     # (기존 코드와 동일)
     target_customer_profile = "일반적인 대한민국 소비자"
@@ -99,7 +71,7 @@ def create_product_specific_prompt(product_name, num_personas=30):
         target_customer_profile = "유당불내증이 있거나 소화 건강에 신경 쓰는 20-50대. 건강을 위해 일반 유제품 대신 락토프리 제품을 선택하며, 출근길이나 점심시간에 편의점에서 자주 구매함."
         if '바닐라라떼' in product_name:
             target_customer_profile += " 단맛을 선호하는 젊은 층의 비중이 상대적으로 높음."
-    logger.info(f" 🎯 타겟 프로필 설정: {target_customer_profile}")
+    logger.info(f"타겟 프로필 설정: {target_customer_profile}")
     prompt = f"""
     당신은 특정 제품의 핵심 구매 고객 페르소나를 생성하는 마케팅 분석 AI입니다.
     [지시사항]
@@ -133,12 +105,7 @@ def create_product_specific_prompt(product_name, num_personas=30):
     """
     return prompt
 
-logger.info("✅ 1. 페르소나 생성 함수가 준비되었습니다.")
-
-
-# ==============================================================================
-# ✨ 2. 에이전트 및 시장 시뮬레이션 클래스 (기존과 동일)
-# ==============================================================================
+logger.info("페르소나 생성 함수 준비 완료")
 class PersonaAgent:
     def __init__(self, persona_data):
         self.id = persona_data.get('persona_id', 'N/A')
@@ -178,14 +145,14 @@ class MarketSimulation:
                 self.agents[i].state = 'Active'
         
         self.adopters = int(self.potential_market_size * initial_adoption_rate)
-        logger.info(f"   - 시뮬레이션 시작. 초기 채택률: {initial_adoption_rate*100:.1f}%, 초기 활성 고객 수(추정): {self.adopters}")
+        logger.info(f"시뮬레이션 시작. 초기 채택률: {initial_adoption_rate*100:.1f}%, 초기 활성 고객 수: {self.adopters}")
 
     def run_simulation(self, months=12):
         monthly_sales_results = []
         num_agents = len(self.agents)
 
         if num_agents == 0:
-            logger.warning("⚠️ 에이전트가 없어 시뮬레이션을 진행할 수 없습니다. 0을 반환합니다.")
+            logger.warning("에이전트 없음. 0 반환")
             return [0] * months
 
         for month_index in range(months):
@@ -209,12 +176,7 @@ class MarketSimulation:
 
         return monthly_sales_results
 
-logger.info("✅ 2. 시뮬레이션 클래스가 준비되었습니다.")
-
-
-# ==============================================================================
-# ✨ 3. 시뮬레이션 파라미터 정의 (기존과 동일)
-# ==============================================================================
+logger.info("시뮬레이션 클래스 준비 완료")
 ESTABLISHED_PRODUCTS = [
     '동원맛참 고소참기름 135g', '동원맛참 고소참기름 90g', '동원맛참 매콤참기름 135g', '동원맛참 매콤참기름 90g',
     '동원참치액 순 500g', '동원참치액 순 900g', '동원참치액 진 500g', '동원참치액 진 900g',
@@ -228,7 +190,7 @@ NEW_PRODUCT_LAUNCH_DATES = {
     '소화가 잘되는 우유로 만든 바닐라라떼 250mL': (2025, 2),
     '소화가 잘되는 우유로 만든 카페라떼 250mL': (2025, 2)
 }
-logger.info("✅ 3-1. 기존/신제품 정보가 설정되었습니다.")
+logger.info("기존/신제품 정보 설정 완료")
 
 HOLIDAY_MODIFIERS = {
     'seollal_chuseok': [1.8, 5.5, 1.0, 0.9, 1.0, 1.1, 1.2, 2.5, 6.5, 1.0, 1.0, 1.1],
@@ -259,17 +221,13 @@ for product, params in SIMULATION_PARAMS.items():
     reordered_modifiers = original_modifiers[START_MONTH_INDEX:] + original_modifiers[:START_MONTH_INDEX]
     SIMULATION_PARAMS[product]['modifiers'] = reordered_modifiers
 
-logger.info("✅ 3-2. SKU 파라미터 설정 및 월별 가중치 재정렬이 완료되었습니다.")
+logger.info("SKU 파라미터 설정 완료")
 
-
-# ==============================================================================
-# ✨ 4. 메인 시뮬레이션 루프
-# ==============================================================================
 try:
     submission_df = pd.read_csv(os.path.join(PATH, 'sample_submission.csv'))
-    logger.info("✅ 4. 제출용 데이터프레임 로드를 완료했습니다.")
+    logger.info("제출용 데이터프레임 로드 완료")
 except FileNotFoundError:
-    logger.error(f"❗️ 'sample_submission.csv' 파일을 찾을 수 없습니다.")
+    logger.error("sample_submission.csv 파일을 찾을 수 없습니다")
     exit()
 
 PERSONAS_PER_BATCH = 30
@@ -283,78 +241,66 @@ for index, row in submission_df.iterrows():
 
     params = SIMULATION_PARAMS.get(product_name, SIMULATION_PARAMS['default'])
     
-    # ⭐ 수정: 페르소나 생성 로직을 캐시 사용 여부에 따라 분기
     product_personas = []
-    
-    # 파일명으로 사용하기 위해 제품명을 안전하게 변환
     safe_product_name = sanitize_filename(product_name)
     persona_cache_file = os.path.join(PERSONA_CACHE_PATH, f'{safe_product_name}_personas.json')
 
-    # 1. 캐시 사용 모드일 경우, 파일 로드를 먼저 시도
     if not USE_API_TO_GENERATE_PERSONAS and os.path.exists(persona_cache_file):
         try:
             with open(persona_cache_file, 'r', encoding='utf-8') as f:
                 product_personas = json.load(f)
-            logger.info(f"✅ [캐시 사용] '{persona_cache_file}' 에서 페르소나 {len(product_personas)}명을 성공적으로 불러왔습니다.")
+            logger.info(f"캐시에서 페르소나 {len(product_personas)}명 로드 완료")
         except Exception as e:
-            logger.warning(f"❗️ 캐시 파일 '{persona_cache_file}' 로드 중 오류 발생: {e}. API를 통해 재생성을 시도합니다.")
-            product_personas = [] # 오류 발생 시, 리스트를 비워 아래 API 로직을 타도록 유도
-
-    # 2. 페르소나가 비어있을 경우 (캐시를 사용하지 않거나, 캐시 파일이 없거나, 로드 실패 시)
+            logger.warning(f"캐시 파일 로드 오류: {e}. API를 통해 재생성 시도")
+            product_personas = []
     if not product_personas:
         if USE_API_TO_GENERATE_PERSONAS:
-            logger.info("🚀 [API 모드] Gemini API를 통해 페르소나 생성을 시작합니다.")
+            logger.info("Gemini API로 페르소나 생성 시작")
             for i in range(NUM_BATCHES_PER_PRODUCT):
                 for attempt in range(MAX_RETRIES_PER_BATCH):
                     try:
                         prompt = create_product_specific_prompt(product_name, PERSONAS_PER_BATCH)
-                        logger.info(f" ⏳ 배치 {i+1}/{NUM_BATCHES_PER_PRODUCT} API 호출 중... (시도 {attempt+1})")
+                        logger.info(f"배치 {i+1}/{NUM_BATCHES_PER_PRODUCT} API 호출 중... (시도 {attempt+1})")
                         response = model.generate_content(prompt)
                         
                         json_text = extract_json_from_response(response.text)
                         if not json_text:
-                            raise ValueError("응답에서 JSON을 찾을 수 없습니다.")
+                            raise ValueError("응답에서 JSON을 찾을 수 없습니다")
                         
                         batch_personas = json.loads(json_text)
                         product_personas.extend(batch_personas)
-                        logger.info(f" ✅ 배치 {i+1} 생성 완료! ({len(batch_personas)}명 추가)")
+                        logger.info(f"배치 {i+1} 생성 완료 ({len(batch_personas)}명 추가)")
                         time.sleep(20)
                         break
                     except Exception as e:
-                        logger.warning(f" ❗️ 배치 {i+1} 시도 {attempt+1} 실패: {e}")
+                        logger.warning(f"배치 {i+1} 시도 {attempt+1} 실패: {e}")
                         if attempt < MAX_RETRIES_PER_BATCH - 1:
-                            logger.info(" 20초 후 재시도합니다...")
+                            logger.info("20초 후 재시도")
                             time.sleep(20)
                         else:
-                            logger.error(f" ❌ 배치 {i+1} 생성 최종 실패.")
+                            logger.error(f"배치 {i+1} 생성 최종 실패")
             
-            # API로 성공적으로 생성 후, 파일로 저장
             if product_personas:
                 try:
                     with open(persona_cache_file, 'w', encoding='utf-8') as f:
                         json.dump(product_personas, f, ensure_ascii=False, indent=4)
-                    logger.info(f"💾 [캐시 저장] 생성된 페르소나 {len(product_personas)}명을 '{persona_cache_file}'에 저장했습니다.")
+                    logger.info(f"생성된 페르소나 {len(product_personas)}명 저장 완료")
                 except Exception as e:
-                    logger.error(f"❗️ 페르소나 캐시 파일 저장 중 오류 발생: {e}")
+                    logger.error(f"페르소나 캐시 파일 저장 오류: {e}")
 
-        else: # API 사용 안 함 & 캐시 파일도 없는 경우
-             logger.warning(f"⚠️ [캐시 없음] '{persona_cache_file}' 파일이 없습니다. 이 제품은 건너뜁니다.")
-             logger.warning(f"   (페르소나를 생성하려면 스크립트 상단의 USE_API_TO_GENERATE_PERSONAS를 True로 변경하세요.)")
+        else:
+             logger.warning(f"캐시 파일 없음: {persona_cache_file}. 이 제품은 건너뜀")
 
-
-    # 페르소나 생성에 최종 실패한 경우, 해당 제품은 0으로 처리하고 다음으로 넘어감
     if not product_personas:
-        logger.error(f" 🚫 페르소나 데이터가 없습니다. [ {product_name} ] 판매량을 0으로 처리합니다.")
+        logger.error(f"페르소나 데이터 없음. {product_name} 판매량을 0으로 처리")
         submission_df.iloc[index, 1:] = [0] * 12
         continue
-
-    # --- 시뮬레이션 실행 (기존 로직과 거의 동일) ---
     if product_name in ESTABLISHED_PRODUCTS:
         initial_rate = np.random.uniform(0.4, 0.6)
     else:
         initial_rate = 1.0
 
-    logger.info(f"--- [ {product_name} ] ABM & Bass Model 시뮬레이션 시작 ---")
+    logger.info(f"{product_name} ABM & Bass Model 시뮬레이션 시작")
     market_sim = MarketSimulation(
         personas=product_personas,
         tam=params['tam'],
@@ -367,7 +313,7 @@ for index, row in submission_df.iterrows():
     
     if product_name in NEW_PRODUCT_LAUNCH_DATES:
         launch_year, launch_month = NEW_PRODUCT_LAUNCH_DATES[product_name]
-        logger.info(f"   - ⚠️ 신제품 ({launch_year}년 {launch_month}월 출시). 출시일 이전 판매량을 0으로 조정합니다.")
+        logger.info(f"신제품 ({launch_year}년 {launch_month}월 출시). 출시일 이전 판매량을 0으로 조정")
         
         for month_index in range(12):
             current_month = 7 + month_index
@@ -383,18 +329,15 @@ for index, row in submission_df.iterrows():
                 monthly_sales[month_index] = 0
 
     submission_df.iloc[index, 1:] = monthly_sales
-    logger.info(f"📈 [ {product_name} ] 12개월 판매량 예측 완료!")
-    logger.info(f"   - 최종 예측 판매량: {monthly_sales}")
+    logger.info(f"{product_name} 12개월 판매량 예측 완료")
+    logger.info(f"최종 예측 판매량: {monthly_sales}")
 
-    # ⭐ 수정: 마지막 제품 실행 후에는 대기하지 않도록 조건 추가
     if index < len(submission_df) - 1:
-        # API 모드일 때는 60초, 캐시 모드일때는 1초 대기
         wait_time = 60 if USE_API_TO_GENERATE_PERSONAS else 1
-        logger.info(f"🕒 다음 제품 분석 전 {wait_time}초간 대기합니다...")
+        logger.info(f"다음 제품 분석 전 {wait_time}초 대기")
         time.sleep(wait_time)
 
-# --- 최종 파일 저장 ---
 submission_df.to_csv(submission_filename, index=False, encoding='utf-8-sig')
-logger.info(f"\n\n🎉🎉🎉 모든 제품의 시뮬레이션이 완료되었습니다!")
-logger.info(f"✅ 최종 제출 파일 '{submission_filename}' 생성이 완료되었습니다.")
-logger.info(f"✅ 상세 로그는 '{log_filename}' 파일에 저장되었습니다.")
+logger.info(f"\n모든 제품의 시뮬레이션 완료")
+logger.info(f"최종 제출 파일 '{submission_filename}' 생성 완료")
+logger.info(f"상세 로그는 '{log_filename}' 파일에 저장됨")
